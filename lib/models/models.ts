@@ -23,8 +23,6 @@ export type ExportInfo = {
 
 export type ParsedFile = {
     file: FileInfo;
-    linesCount: number;
-    functions: number;
+    functions: FunctionInfo[];
     imports: ImportInfo[];
-    exports: ExportInfo[];
 }

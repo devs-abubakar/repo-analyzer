@@ -1,8 +1,12 @@
 
 import { sayName }  from './file2'
-const hello = 'hello world'
+import { greet } from './file1'
 
-function greet() {
-  console.log(hello)
-}   
-greet()
+
+const greeting = greet('Hello, World!')
+console.log(greeting)
+
+
+function sayHello(name : string): void{
+    console.log(`Hello, ${name}!`);
+}

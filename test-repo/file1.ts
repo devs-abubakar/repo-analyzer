@@ -1,6 +1,5 @@
-const hello = 'hello world'
 
-function greet() {
-  console.log(hello)
+export function greet(text: string): string {
+
+  return text
 }
-greet()

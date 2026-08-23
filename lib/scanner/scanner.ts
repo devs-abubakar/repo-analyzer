@@ -1,17 +1,11 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { FileInfo } from '../models/file'
+import { FileInfo } from '../models/models'
 
 
-const directory = 'test-repo'
-
-
-const directoryPath = path.join(process.cwd(),directory)
-console.log('the working directory is ',directoryPath)
-
-
-async function scanDirectory(directory:string) : Promise<FileInfo[]>{
+export async function scanDirectory(directory:string) : Promise<FileInfo[]>{
     
+
     const fileInfoList : FileInfo[] = []
     
     const entries = await fs.readdir(directory,{
@@ -19,11 +13,13 @@ async function scanDirectory(directory:string) : Promise<FileInfo[]>{
     })
 
     for (const entry of entries){
+        
+        const entryPath = path.join(directory, entry.name)
+
         if (entry.isDirectory()){
-            const childFiles =  await scanDirectory(path.join(directory, entry.name))
+            const childFiles =  await scanDirectory(entryPath)
             fileInfoList.push(...childFiles)
-        }
-        if (entry.isFile()){
+        }else if (entry.isFile()){
             console.log('the file is ',entry.name)
             const fileinfo : FileInfo = {
                 name: entry.name,
@@ -34,7 +30,6 @@ async function scanDirectory(directory:string) : Promise<FileInfo[]>{
             fileInfoList.push(fileinfo)
         }
     }
-    console.log('the file info list is ',fileInfoList)
     return fileInfoList
 }
 

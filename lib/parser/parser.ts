@@ -1,34 +1,38 @@
 import fs from 'node:fs/promises';
 import ts from 'typescript';
 import path from 'node:path';
-import { ImportInfo, FunctionInfo } from '../models/file';
-
-const directory = 'test-repo';
-
-const directoryPath = path.join(process.cwd(), directory);
+import { ImportInfo, FunctionInfo, ParsedFile, FileInfo,  } from '../models/models';
 
 
-async function parseFile(filePath: string) {
+
+
+
+export async function parseFile(fileInfo: FileInfo): Promise<ParsedFile> {
+
+    console.log("entered the parseFile function with fileInfo:", fileInfo)
 
     const imports : ImportInfo[] = []
     
     const functions : FunctionInfo[] = []
 
-    const code = await fs.readFile(path.join(filePath, 'example.ts'), 'utf-8');
+    const code = await fs.readFile(fileInfo.path, 'utf-8')
 
-    console.log(code)
+    const filePath = fileInfo.path
 
-    const sourceFile = ts.createSourceFile('example.ts', code, ts.ScriptTarget.Latest, true);
-    console.log(sourceFile)
+    const sourceFile = ts.createSourceFile(path.basename(filePath), code, ts.ScriptTarget.Latest, true);
 
     function visit(node: ts.Node) {
-        console.log('Visiting node:', ts.SyntaxKind[node.kind]);
+    
         if (ts.isImportDeclaration(node)) {
+
+            const bindings = node.importClause?.namedBindings
+
             const importDetails = {
                 source: (node.moduleSpecifier as ts.StringLiteral).text,
-                importedNames: node.importClause?.namedBindings && ts.isNamedImports(node.importClause.namedBindings)
-                
-            }
+                importedNames: bindings?.elements.map(e => e.name.text) || [],
+                isDefault: node.importClause?.name ? true : false,
+                isNamespace: node.importClause?.namedBindings && ts.isNamespaceImport(node.importClause.namedBindings) ? true : false
+            }   
             imports.push(importDetails)
         }
 
@@ -42,7 +46,9 @@ async function parseFile(filePath: string) {
         ts.forEachChild(node,visit)
     }
     visit(sourceFile)
-    console.log('Imports found:', imports);
+    return {
+        file: fileInfo,
+        functions,
+        imports
+    }
 }
-
-parseFile(directoryPath)
