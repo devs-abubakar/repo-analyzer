@@ -8,6 +8,10 @@ export type FileInfo = {
 
 export type FunctionInfo = {
     name: string;
+    parameters : string[];
+    async : boolean;
+    exported : boolean;
+    location : string;
 }
 
 export type ImportInfo = {  
@@ -18,7 +22,7 @@ export type ImportInfo = {
 }
 export type ExportInfo = {
     name: string;
-    type:"named"|"default";
+    type:"named"|"default"|"function"|"class"|"variable"|"re-export";
 }
 
 export type ParsedFile = {

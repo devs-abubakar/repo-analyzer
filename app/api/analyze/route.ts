@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     const parsedFiles: ParsedFile[] = await Promise.all(
         scannerInfo.map(filleInfo => parseFile(filleInfo))
     )
-    console.log('==========Parsed files:==========', parsedFiles)
+    console.log('==========Parsed files:==========', parsedFiles, {depth: null})
 
     return Response.json(parsedFiles)
 }
