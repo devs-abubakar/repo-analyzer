@@ -33,7 +33,26 @@ export async function parseFile(fileInfo: FileInfo): Promise<ParsedFile> {
             imports.push(importDetails)
         }
 
+        if (ts.isVariableStatement(node)){
+            const isExported = node.modifiers?.some(
+                modifier => modifier.kind === ts.SyntaxKind.ExportKeyword
+            )
+        
+        }
+
+        if (ts.isClassDeclaration(node)){
+
+            const isExported = node.modifiers?.some(
+                modifier => modifier.kind === ts.SyntaxKind.ExportKeyword
+            )
+        }
+
         if (ts.isFunctionDeclaration(node)) {
+
+            const isExported = node.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)
+
+
+
             const functionDetails: FunctionInfo = {
                 name: node.name?.text || 'anonymous',
                 parameters: node.parameters.map(param => param.name.getText()),
