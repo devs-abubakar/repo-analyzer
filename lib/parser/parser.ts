@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import ts, { isNamespaceImport } from 'typescript';
 import path from 'node:path';
-import { ImportInfo, FunctionInfo, ParsedFile, FileInfo,  } from '../models/models';
+import { ImportInfo, ExportInfo, FunctionInfo, ParsedFile, FileInfo,  } from '../models/models';
 
 
 export async function parseFile(fileInfo: FileInfo): Promise<ParsedFile> {
@@ -9,6 +9,8 @@ export async function parseFile(fileInfo: FileInfo): Promise<ParsedFile> {
     console.log("entered the parseFile function with fileInfo:", fileInfo)
 
     const imports : ImportInfo[] = []
+
+    const exports : ExportInfo[] = []
     
     const functions : FunctionInfo[] = []
 
@@ -19,7 +21,9 @@ export async function parseFile(fileInfo: FileInfo): Promise<ParsedFile> {
     const sourceFile = ts.createSourceFile(path.basename(filePath), code, ts.ScriptTarget.Latest, true);
 
     function visit(node: ts.Node) {
-    
+        
+        
+
         if (ts.isImportDeclaration(node)) {
 
             const importedNames = importVerifier(node)
@@ -37,21 +41,40 @@ export async function parseFile(fileInfo: FileInfo): Promise<ParsedFile> {
             const isExported = node.modifiers?.some(
                 modifier => modifier.kind === ts.SyntaxKind.ExportKeyword
             )
-        
+           if (isExported){
+            node.declarationList?.declarations.forEach(variable =>
+                exports.push({
+                    name: variable.name.getText(),
+                    type: "variable"
+                })
+            )
+           }
         }
+
 
         if (ts.isClassDeclaration(node)){
 
             const isExported = node.modifiers?.some(
                 modifier => modifier.kind === ts.SyntaxKind.ExportKeyword
             )
+            if (isExported){
+                exports.push({
+                    name : node.name?.text,
+                    type : "class" 
+                })
+            }
         }
 
         if (ts.isFunctionDeclaration(node)) {
 
             const isExported = node.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)
 
-
+            if (isExported){
+                exports.push({
+                    name : node.name?.text,
+                    type : node.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.DefaultKeyword)? "default" : "function"
+                })
+            }
 
             const functionDetails: FunctionInfo = {
                 name: node.name?.text || 'anonymous',
@@ -63,17 +86,32 @@ export async function parseFile(fileInfo: FileInfo): Promise<ParsedFile> {
             functions.push(functionDetails);
         }
 
-        if (ts.isExportDeclaration(node)){
-            console.log("exports through destructering are: ",exportVerifier(node))
-        }
 
+    const exportClause = node.exportClause;
+
+    if (exportClause && ts.isNamedExports(exportClause)) {
+        
+            exportClause.elements.map(element => exports.push({
+                name : element.name.text,
+                type : "unknown"
+            })
+        );
+
+}
         ts.forEachChild(node,visit)
     }
     visit(sourceFile)
+    console.log(
+        fileInfo,
+        functions,
+        imports,
+        exports
+    )
     return {
         file: fileInfo,
         functions,
-        imports
+        imports,
+        exports
     }
 }
 async function testParseFile() {
@@ -114,12 +152,3 @@ function importVerifier(node: ts.ImportDeclaration): string[]{
     return [];
 }
 
-function exportVerifier(node: ts.ExportDeclaration): string[]{
-    
-    const exportClause = node.exportClause
-    
-    if (exportClause && ts.isExportDeclaration){
-        return exportClause?.elements?.map(element => element?.name.text)
-    }
-    return []
-}

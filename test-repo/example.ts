@@ -1,34 +1,29 @@
+import { sayName } from "./file2";
+import { greet } from "./file1";
 
-import { sayName }  from './file2'
-import { greet } from './file1'
 import foo from "./foo";
-
 import { foo, bar } from "./foo";
 
 import * as utils from "./utils";
 
-import foo, { bar } from "./foo";
+import foo2, { bar } from "./foo";
 
 import "./setup";
 
-const greeting = greet('Hello, World!')
-console.log(greeting)
+// WRONG — doesn't exist
+import { something } from "./does-not-exist";
 
+// WRONG — wrong path
+import { Button } from "./components/Buttons";
 
-function sayHello(name : string, age: number): void{
-    console.log(`Hello, ${name}!, You are ${age} years old.`);
+function sayHello(name: string, age: number): void {
+    console.log(`Hello, ${name}!`);
 }
 
 export function greet() {}
 
 export const name = "Abu";
 
-export class User {}
-
 export default function main() {}
 
 export { greet };
-
-export { foo } from "./foo";
-
-export * from "./utils";
